@@ -1,6 +1,7 @@
 #!/bin/bash
-if [ -e data.tex ]; then
-	rm data.tex
+texdata=texfiles/data.tex
+if [ -e $texdata ]; then
+	rm $texdata
 fi
 # werden hier  einfach nur leere Tage gelöscht?
 for i in html/*;do
@@ -11,13 +12,13 @@ done
 for i in $(for l in {0..1};do  date --date="$l year" +%Y;done);do
 #   monate=$(ls html/$i* 2> /dev/null | wc -l)
 #   if [ $monate != 0 ]; then
-#     echo "\jahr{$i}" >> data.tex;
+#     echo "\jahr{$i}" >> $texdata;
 #   fi
   for j in {01..12};do
     relmon=$((10#$j-(10#$(date +%m)))); #Nummer des Monats relativ zum aktuellen Monat
     tage=$(ls html/$i$j* 2> /dev/null | wc -l) # ist an irgendeinem Tag
     if [ $tage != 0 ]; then
-      echo "\monat{$(date --date="$relmon month" +%B) $i}" >> data.tex;
+      echo "\monat{$(date --date="$relmon month" +%B) $i}" >> $texdata;
     fi;
     for k in {01..31};do
       if [ -f html/$i$j$k.html ]; then
@@ -46,10 +47,10 @@ for i in $(for l in {0..1};do  date --date="$l year" +%Y;done);do
 	sed 's!&quot;\(.*\)&quot;!\\textit{\1}!g'|
 	sed 's!„\(.*\)“!\\textit{\1}!g'|
 	sed ':a;N;$!ba;s!\n\([^\t]\)!}\n\1!g' |
-	sed ':a;N;$!ba;s!\\datum{.\{2\}}{[0-9]\{1,2\}}{}\n!!g' >> data.tex;
-	echo } >> data.tex;
+	sed ':a;N;$!ba;s!\\datum{.\{2\}}{[0-9]\{1,2\}}{}\n!!g' >> $texdata;
+	echo } >> $texdata;
       fi;
     done;
   done;
 done;
-sed -i ':a;N;$!ba;s!}\n}!}}!g' data.tex
+sed -i ':a;N;$!ba;s!}\n}!}}!g' $texdata
