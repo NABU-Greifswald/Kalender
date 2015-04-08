@@ -11,30 +11,30 @@ cd $workdir
 #	mv $i alt$i;
 #done
 #kalender zerschneiden
-csplit -s $workdir/kalender.ics /BEGIN:VEVENT/ {*}
+csplit -s kalender.ics /BEGIN:VEVENT/ {*}
 #headerdatei umbenennen
-mv $workdir/xx00 $workdir/header
+mv xx00 header
 #tail entfernen
-for i in $workdir/xx*;
+for i in xx*;
 do
 	sed -i 's!END:VCALENDAR!!g' $i
 	if [ $(grep RRULE $i| wc -l) == 1 ];
 	then
-		cat $i >> $workdir/wdhtermine && rm $i
+		cat $i >> wdhtermine && rm $i
 	fi;
 done
-for i in $workdir/xx*;
+for i in xx*;
 	do
-		dateiname=$workdir/$(grep DTSTART $i | sed 's!.*\([0-9]\{8\}\).*!\1!g')
+		dateiname=$(grep DTSTART $i | sed 's!.*\([0-9]\{8\}\).*!\1!g')
 		cat $i >> $dateiname && rm $i; # warum nicht einfach mv $i $dateiname?
 	done
-for i in $workdir/20*;
+for i in 20*;
 	do
-		cat $workdir/wdhtermine >> $i;
+		cat wdhtermine >> $i;
 	done
-for i in {$workdir/20*,$workdir/wdhtermine};
+for i in {20*,wdhtermine};
 do
-	cat $workdir/header >> $i.ics
+	cat header >> $i.ics
 	cat $i >> $i.ics
 	echo "END:VCALENDAR" >> $i.ics
 	rm $i;
@@ -42,7 +42,7 @@ done
 }
 function ics2html {
 #!/bin/bash
-n=365
+n=10
 #tar -cjf "backup/$(date +%Y-%m-%d-%H%M).tar.bz2"  kalender.ics html/*
 rm  html/* eindaten wdhdaten
 sed -i '/DTSTART;VALUE/{ N; s/DTSTART;\(.*\)\nDTEND;.*/DTSTART;\1\nDTEND;\1/ }' kalender.ics #alle mehrtägigen zu eintägigen
@@ -96,7 +96,7 @@ do
 done
 }
 function html2tex {
-texdata=texfiles/data.tex
+texdata=$workdir/data.tex
 if [ -e $texdata ]; then
 	rm $texdata
 fi
@@ -163,19 +163,20 @@ then
 	then
 		mkdir -p $workdir
 	fi
+	cd $workdir
 	#den zuletzt geladenen googlekalender unter kalenderalt.ics abspeichern
-	mv $workdir/kalender.ics $workdir/kalenderalt.ics #aber wozu?
-	rm $workdir/wdhtermine.ics
-	rm $workdir/20*ics
+	mv kalender.ics kalenderalt.ics #aber wozu?
+	rm wdhtermine.ics
+	rm 20*ics
 	#lade den aktuellen Kalender von google und speichere ihn unter kalender.ics
-	wget -O $workdir/kalender.ics https://www.google.com/calendar/ical/greifswald%40nabu-mv.de/public/basic.ics
+	wget -O kalender.ics https://www.google.com/calendar/ical/greifswald%40nabu-mv.de/public/basic.ics
 	#mache aus allen mehrtägigen Terminen eintägige
-	sed -i '/DTSTART;VALUE/{ N; s/DTSTART;\(.*\)\nDTEND;.*/DTSTART;\1\nDTEND;\1/ }' $workdir/kalender.ics
+	sed -i '/DTSTART;VALUE/{ N; s/DTSTART;\(.*\)\nDTEND;.*/DTSTART;\1\nDTEND;\1/ }' kalender.ics
 	#alle timestamps zurücksetzen. wenn man sie löscht, meckert ical2html; also müssen sie zurück gesetzt werden, damit sie keine falsch-positiven Difftests erzeugen
-	sed -i 's!DTSTAMP:.*!DTSTAMP:20130101T000001Z!g' $workdir/kalender.ics 
+	sed -i 's!DTSTAMP:.*!DTSTAMP:20130101T000001Z!g' kalender.ics 
 	#TODO: falls sich nur Einzeltermine geändert haben, parse nur für diese Tage neu, nicht für 0..n
 	#fange nur an zu arbeiten, falls sich seit dem letzten Download etwas im kalender geändert hat
-	if [ $(diff $workdir/kalenderalt.ics $workdir/kalender.ics | wc -l) != 0 ];
+	if [ $(diff kalenderalt.ics kalender.ics | wc -l) != 0 ];
 	then 
 		#die Kalender.ics aufteilen in mehrere kleine Dateien. Dies bringt einen großen Geschwindigkeitsvorteil
 		splitinput()
